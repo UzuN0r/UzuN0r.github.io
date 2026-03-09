@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="career-body">
+    <!-- Фоновые круги -->
+    <div class="career-bg-circles">
+        <div class="career-circle-1"></div>
+        <div class="career-circle-2"></div>
+        <div class="career-circle-3"></div>
+        <div class="career-circle-4"></div>
+    </div>
+
+    <!-- Контейнер формы -->
+    <div class="career-form-container">
+        <div class="career-form-box">
+            <!-- Круги внутри формы -->
+            <div class="career-form-circles">
+                <div class="career-form-circle-5"></div>
+                <div class="career-form-circle-6"></div>
+                <div class="career-form-circle-7"></div>
+                <div class="career-form-circle-8"></div>
+            </div>
+
+            <!-- Содержимое формы -->
+            <div class="career-form-content">
+                <!-- Шапка формы -->
+                <div class="career-form-header">
+                    <div class="career-form-logo">Career Navigator</div>
+                    <h2 class="career-form-title">Регистрация</h2>
+                    <p class="career-form-subtitle">Заполните форму для создания нового аккаунта</p>
+                </div>
+
+                <!-- Flash сообщения -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    <div class="flash-messages">
+                      {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                          {{ message }}
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+
+                <!-- Форма регистрации -->
+                <form action="{{ url_for('register_page') }}" method="post">
+                    <!-- Имя пользователя -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Имя пользователя</label>
+                        <input type="text" name="reg_username" class="career-form-control" required
+                               placeholder="Введите имя пользователя">
+                        <span class="career-form-hint">Как к вам обращаться в системе</span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Электронная почта</label>
+                        <input type="email" name="reg_email" class="career-form-control" required
+                               placeholder="example@email.com">
+                        <span class="career-form-hint">Используйте действующий email адрес</span>
+                    </div>
+
+                    <!-- Пароль -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Пароль</label>
+                        <input type="password" name="reg_password" class="career-form-control" required
+                               placeholder="Придумайте надежный пароль">
+                        <span class="career-form-hint">Минимум 8 символов</span>
+                    </div>
+
+                    <!-- Подтверждение пароля -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Подтвердите пароль</label>
+                        <input type="password" name="reg_password_confirm" class="career-form-control" required
+                               placeholder="Повторите пароль">
+                    </div>
+
+                    <!-- Кнопка регистрации -->
+                    <div class="career-form-group">
+                        <button type="submit" class="career-btn-primary">
+                            Создать аккаунт
+                        </button>
+                    </div>
+
+                    <!-- Разделитель -->
+                    <div class="career-form-divider"></div>
+
+                    <!-- Футер формы -->
+                    <div class="career-form-footer">
+                        <p>Уже зарегистрированы?</p>
+                        <a href="{{ url_for('login_page') }}" class="career-btn-outline">
+                            Войти в систему
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (только для закрытия alert) -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</body>
+</html>

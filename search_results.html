@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты поиска профессий</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style3.css') }}">
+    <style>
+        .results-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.profession-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(89, 118, 172, 0.1);
+    border: 1px solid rgba(155, 185, 224, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.profession-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(89, 118, 172, 0.2);
+    border-color: var(--cornflower-blue);
+}
+
+.profession-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--coffee-crema), var(--cornflower-blue));
+    border-radius: 20px 0 0 20px;
+}
+
+.profession-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.profession-main {
+    flex: 1;
+}
+
+.profession-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cornflower-blue);
+    margin-bottom: 8px;
+    font-family: 'Educational Gothic', sans-serif;
+}
+
+.profession-meta {
+    color: var(--shadowed-lace);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.direction-badge {
+    background: rgba(155,185,224,0.15);
+    color: var(--cornflower-blue);
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.profession-details {
+    display: none;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid rgba(155, 185, 224, 0.2);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.empty-results {
+    text-align: center;
+    margin-top: 100px;
+    color: var(--shadowed-lace);
+}
+
+.loading-text {
+    font-size: 14px;
+    color: var(--shadowed-lace);
+    margin-top: 10px;
+}
+
+/* Теги */
+.tag {
+    display: inline-block;
+    background: rgba(155,185,224,0.15);
+    color: var(--cornflower-blue);
+    padding: 6px 14px;
+    border-radius: 12px;
+    margin: 3px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.institution-tag {
+    background: rgba(100,200,150,0.15);
+    color: #2e7d32;
+}
+
+/* Шкалы для сжатой карточки (справа) */
+.scales-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 180px;
+    margin-left: 20px;
+}
+
+.scale-compact {
+    display: flex;
+    flex-direction: column;
+}
+
+.scale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.scale-label {
+    font-size: 13px;
+    color: var(--shadowed-lace);
+    font-weight: 500;
+}
+
+.scale-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cornflower-blue);
+    background: rgba(155, 185, 224, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.scale-bar {
+    width: 180px;
+    height: 6px;
+    background: rgba(155, 185, 224, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.scale-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease-out;
+}
+
+.scale-fill-difficulty {
+    background: #F1642E;
+}
+
+.scale-fill-demand {
+    background: #A3B565;
+}
+
+.scale-fill-communication {
+    background: #504E76;
+}
+
+/* Детали расширенной карточки */
+.details-section {
+    margin-bottom: 25px;
+}
+
+.details-title {
+    font-size: 18px;
+    color: var(--cornflower-blue);
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(155, 185, 224, 0.3);
+    font-family: 'Educational Gothic', sans-serif;
+}
+
+.details-content {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Информация о зарплате */
+.salary-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.salary-amount {
+    font-weight: 600;
+    color: var(--cornflower-blue);
+}
+
+/* Кнопка назад */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 25px;
+    background: var(--cornflower-blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    margin-bottom: 30px;
+    font-family: 'Mulish', sans-serif;
+}
+
+.back-button:hover {
+    background: var(--soft-sky-blue);
+    transform: translateX(-5px);
+    color: white;
+    text-decoration: none;
+}
+
+/* Шкалы для расширенной карточки (линейные) */
+.scales-expanded {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin: 25px 0;
+    padding: 25px;
+    background: rgba(244, 241, 232, 0.3);
+    border-radius: 16px;
+    border: 1px solid rgba(155, 185, 224, 0.2);
+}
+
+.scale-expanded {
+    display: flex;
+    flex-direction: column;
+}
+
+.scale-expanded-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.scale-expanded-label {
+    font-size: 16px;
+    color: var(--cornflower-blue);
+    font-weight: 600;
+}
+
+.scale-expanded-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cornflower-blue);
+}
+
+.scale-expanded-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(155, 185, 224, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.scale-expanded-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1s ease-out;
+}
+
+.scale-expanded-description {
+    font-size: 14px;
+    color: var(--shadowed-lace);
+    min-height: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profession-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .scales-compact {
+        width: 100%;
+        margin-left: 0;
+        min-width: auto;
+    }
+
+    .scale-bar {
+        width: 100%;
+    }
+
+    .scales-expanded {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .profession-name {
+        font-size: 20px;
+    }
+
+    .scale-expanded-value {
+        font-size: 18px;
+    }
+}
+    </style>
+</head>
+<body class="career-body">
+
+<div class="results-container">
+    <a href="/search" class="back-button">
+        Назад к поиску
+    </a>
+
+    <h1 class="mb-4" style="color: var(--cornflower-blue); font-family: 'Educational Gothic', sans-serif;">Результаты поиска</h1>
+
+    <div id="results"></div>
+
+    <div id="emptyMessage" class="empty-results" style="display:none;">
+        <h3 style="color: var(--cornflower-blue);">Мы ничего не нашли по вашему запросу </h3>
+        <p style="color: var(--shadowed-lace); font-size: 18px;">Попробуйте изменить фильтры или расширить критерии поиска.</p>
+    </div>
+</div>
+
+<script>
+    const resultsContainer = document.getElementById('results');
+    const emptyMessage = document.getElementById('emptyMessage');
+
+    // Получаем данные из localStorage
+    const results = JSON.parse(localStorage.getItem('lastSearchResults')) || [];
+
+    // Если результатов нет
+    if (results.length === 0) {
+        emptyMessage.style.display = 'block';
+    } else {
+        // Функция для преобразования сложности обучения
+        function parseDifficultyLevel(difficulty) {
+            const map = {
+                'колледж': 1,
+                'бакалавриат': 2,
+                'специалитет': 3,
+                'магистратура': 4,
+                'аспирантура': 5
+            };
+
+            if (typeof difficulty === 'number') return difficulty;
+            return map[difficulty?.toLowerCase()] || 3;
+        }
+
+        // Функция для описания сложности
+        function getDifficultyDescription(value) {
+            return ["Колледж", "Бакалавриат", "Специалитет", "Магистратура", "Аспирантура"][value - 1];
+        }
+
+        // Отображаем каждую профессию
+        results.forEach(profession => {
+            const card = document.createElement('div');
+            card.className = 'profession-card';
+            card.dataset.id = profession.id;
+
+            // Форматируем направление
+            const directionDisplay = profession.directions && profession.directions.length > 0
+                ? profession.directions[0]
+                : '';
+
+            // Рассчитываем значения для шкал (СТРОГО по правкам)
+            const difficultyValue = parseDifficultyLevel(profession.difficulty_level);
+            const demandValue = profession.demand_level || 3;
+            const communicationValue = profession.communication_level || 5;
+
+            // Рассчитываем проценты для шкал
+            const difficultyPercent = (difficultyValue / 5) * 100;
+            const demandPercent = (demandValue / 5) * 100;
+            const communicationPercent = (communicationValue / 10) * 100;
+
+            // Описания для шкал
+            const difficultyDescription = getDifficultyDescription(difficultyValue);
+            const demandDescription = demandValue <= 2 ? "Низкая" : demandValue <= 4 ? "Средняя" : "Высокая";
+            const communicationDescription =
+                communicationValue <= 2 ? "Низкий" :
+                communicationValue <= 4 ? "Ниже среднего" :
+                communicationValue <= 6 ? "Средний" :
+                communicationValue <= 8 ? "Высокий" :
+                "Очень высокий";
+
+            card.innerHTML = `
+                <div class="profession-header">
+                    <div class="profession-main">
+                        <div class="profession-name">${escapeHtml(profession.name)}</div>
+                        <div class="profession-meta">
+                            <span class="direction-badge">${escapeHtml(directionDisplay)}</span>
+                            ${profession.salary_min ? `
+                                <div class="salary-info">
+                                    <span class="salary-amount">от ${formatSalary(profession.salary_min)} ₽</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Шкалы в сжатой карточке (справа) -->
+                    <div class="scales-compact">
+                        <div class="scale-compact">
+                            <div class="scale-header">
+                                <span class="scale-label">Сложность обучения</span>
+                                <span class="scale-value">${difficultyValue}/5</span>
+                            </div>
+                            <div class="scale-bar">
+                                <div class="scale-fill scale-fill-difficulty" style="width: ${difficultyPercent}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="scale-compact">
+                            <div class="scale-header">
+                                <span class="scale-label">Востребованность</span>
+                                <span class="scale-value">${demandValue}/5</span>
+                            </div>
+                            <div class="scale-bar">
+                                <div class="scale-fill scale-fill-demand" style="width: ${demandPercent}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="scale-compact">
+                            <div class="scale-header">
+                                <span class="scale-label">Уровень общения</span>
+                                <span class="scale-value">${communicationValue}/10</span>
+                            </div>
+                            <div class="scale-bar">
+                                <div class="scale-fill scale-fill-communication" style="width: ${communicationPercent}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profession-details">
+                    <!-- Удалено загрузочное сообщение -->
+                </div>
+            `;
+
+            // Обработчик клика по карточке
+            card.addEventListener('click', async function () {
+                const details = card.querySelector('.profession-details');
+
+                // Если уже раскрыта — сворачиваем
+                if (details.style.display === 'block') {
+                    details.style.display = 'none';
+                    return;
+                }
+
+                details.style.display = 'block';
+
+                // Если уже загружали — не загружаем снова
+                if (details.dataset.loaded) return;
+
+                try {
+                    const response = await fetch(`/api/professions/${profession.id}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    // Проверяем, есть ли ошибка
+                    if (data.error) {
+                        details.innerHTML = `<p class="text-danger">Ошибка: ${escapeHtml(data.error)}</p>`;
+                        return;
+                    }
+
+                    const p = data;
+
+                    // Рассчитываем значения для шкал (СТРОГО по правкам)
+                    const expandedDifficultyValue = parseDifficultyLevel(p.difficulty_level);
+                    const expandedDemandValue = p.demand_level || 3;
+                    const expandedCommunicationValue = p.communication_level || 5;
+
+                    // Рассчитываем проценты для шкал
+                    const expandedDifficultyPercent = (expandedDifficultyValue / 5) * 100;
+                    const expandedDemandPercent = (expandedDemandValue / 5) * 100;
+                    const expandedCommunicationPercent = (expandedCommunicationValue / 10) * 100;
+
+                    // Получаем описания
+                    const expandedDifficultyDescription = getDifficultyDescription(expandedDifficultyValue);
+                    const expandedDemandDescription = expandedDemandValue <= 2 ? "Низкая" : expandedDemandValue <= 4 ? "Средняя" : "Высокая";
+                    const expandedCommunicationDescription =
+                        expandedCommunicationValue <= 2 ? "Низкий" :
+                        expandedCommunicationValue <= 4 ? "Ниже среднего" :
+                        expandedCommunicationValue <= 6 ? "Средний" :
+                        expandedCommunicationValue <= 8 ? "Высокий" :
+                        "Очень высокий";
+
+                    // Форматируем данные
+                    const subjectsHtml = p.subjects && p.subjects.length > 0
+                        ? p.subjects.map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')
+                        : '<span class="text-muted">Не указано</span>';
+
+                    const workFormatsHtml = p.work_formats && p.work_formats.length > 0
+                        ? p.work_formats.map(f => `<span class="tag">${escapeHtml(f)}</span>`).join('')
+                        : '<span class="text-muted">Не указано</span>';
+
+                    const schedulesHtml = p.schedules && p.schedules.length > 0
+                        ? p.schedules.map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')
+                        : '<span class="text-muted">Не указано</span>';
+
+                    const institutionsHtml = p.institutions && p.institutions.length > 0
+                        ? p.institutions.map(i => `<span class="tag institution-tag">${escapeHtml(i.name)} (${escapeHtml(i.type)})</span>`).join('')
+                        : '<span class="text-muted">Не указано</span>';
+
+                    const directionsHtml = p.directions && p.directions.length > 0
+                        ? p.directions.map(d => `<span class="tag">${escapeHtml(d)}</span>`).join('')
+                        : '<span class="text-muted">Не указано</span>';
+
+                    // Собираем HTML для детальной информации
+                    details.innerHTML = `
+                        <!-- Линейные шкалы -->
+                        <div class="scales-expanded">
+                            <div class="scale-expanded">
+                                <div class="scale-expanded-header">
+                                    <div class="scale-expanded-label">Сложность обучения</div>
+                                    <div class="scale-expanded-value">${expandedDifficultyValue}/5</div>
+                                </div>
+                                <div class="scale-expanded-bar">
+                                    <div class="scale-expanded-fill scale-fill-difficulty" style="width: ${expandedDifficultyPercent}%"></div>
+                                </div>
+                                <div class="scale-expanded-description">
+                                    <strong>${expandedDifficultyDescription}</strong> - уровень образования
+                                </div>
+                            </div>
+
+                            <div class="scale-expanded">
+                                <div class="scale-expanded-header">
+                                    <div class="scale-expanded-label">Востребованность</div>
+                                    <div class="scale-expanded-value">${expandedDemandValue}/5</div>
+                                </div>
+                                <div class="scale-expanded-bar">
+                                    <div class="scale-expanded-fill scale-fill-demand" style="width: ${expandedDemandPercent}%"></div>
+                                </div>
+                                <div class="scale-expanded-description">
+                                    <strong>${expandedDemandDescription}</strong> - спрос на рынке труда
+                                </div>
+                            </div>
+
+                            <div class="scale-expanded">
+                                <div class="scale-expanded-header">
+                                    <div class="scale-expanded-label">Уровень общения</div>
+                                    <div class="scale-expanded-value">${expandedCommunicationValue}/10</div>
+                                </div>
+                                <div class="scale-expanded-bar">
+                                    <div class="scale-expanded-fill scale-fill-communication" style="width: ${expandedCommunicationPercent}%"></div>
+                                </div>
+                                <div class="scale-expanded-description">
+                                    <strong>${expandedCommunicationDescription}</strong> - интенсивность коммуникации
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Описание -->
+                        ${p.description ? `
+                            <div class="details-section">
+                                <div class="details-title">
+                                    Описание профессии
+                                </div>
+                                <div class="details-content">${escapeHtml(p.description)}</div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Детали -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="details-section">
+                                    <div class="details-title">
+                                        Обучение
+                                    </div>
+                                    <div class="details-content">
+                                        <p><strong>Предметы:</strong></p>
+                                        <div class="tags-container">${subjectsHtml}</div>
+
+                                        <p class="mt-3"><strong>Направления:</strong></p>
+                                        <div class="tags-container">${directionsHtml}</div>
+
+                                        <p class="mt-3"><strong>Тип поступления:</strong></p>
+                                        <div class="tags-container">
+                                            <span class="tag">${escapeHtml(p.admission_type || 'Не указано')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="details-section">
+                                    <div class="details-title">
+                                        Работа
+                                    </div>
+                                    <div class="details-content">
+                                        <p><strong>Формат работы:</strong></p>
+                                        <div class="tags-container">${workFormatsHtml}</div>
+
+                                        <p class="mt-3"><strong>График работы:</strong></p>
+                                        <div class="tags-container">${schedulesHtml}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Информация о зарплате -->
+                        ${p.salary_min ? `
+                            <div class="details-section">
+                                <div class="details-title">
+                                    Зарплата
+                                </div>
+                                <div class="details-content">
+                                    <div class="salary-info">
+                                        <span class="salary-amount" style="font-size: 18px;">
+                                            от ${formatSalary(p.salary_min)} ₽
+                                            ${p.salary_max ? `до ${formatSalary(p.salary_max)} ₽` : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Учебные заведения -->
+                        ${p.institutions && p.institutions.length > 0 ? `
+                            <div class="details-section">
+                                <div class="details-title">
+                                    Учебные заведения
+                                </div>
+                                <div class="details-content">
+                                    <div class="tags-container">${institutionsHtml}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    `;
+
+                    details.dataset.loaded = 'true';
+
+                } catch (e) {
+                    console.error('Ошибка загрузки деталей профессии:', e);
+                    details.innerHTML = '<p class="text-danger">Не удалось загрузить данные. Попробуйте позже.</p>';
+                }
+            });
+
+            resultsContainer.appendChild(card);
+        });
+    }
+
+    // Вспомогательные функции
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatSalary(amount) {
+        if (!amount && amount !== 0) return 'Не указано';
+        return amount.toLocaleString('ru-RU');
+    }
+</script>
+
+</body>
+</html>

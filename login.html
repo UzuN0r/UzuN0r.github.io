@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="career-body">
+    <!-- Фоновые круги -->
+    <div class="career-bg-circles">
+        <div class="career-circle-1"></div>
+        <div class="career-circle-2"></div>
+        <div class="career-circle-3"></div>
+        <div class="career-circle-4"></div>
+    </div>
+
+    <!-- Контейнер формы -->
+    <div class="career-form-container">
+        <div class="career-form-box">
+            <!-- Круги внутри формы -->
+            <div class="career-form-circles">
+                <div class="career-form-circle-5"></div>
+                <div class="career-form-circle-6"></div>
+                <div class="career-form-circle-7"></div>
+                <div class="career-form-circle-8"></div>
+            </div>
+
+            <!-- Содержимое формы -->
+            <div class="career-form-content">
+                <!-- Шапка формы -->
+                <div class="career-form-header">
+                    <div class="career-form-logo">Career Navigator</div>
+                    <h2 class="career-form-title">Вход в систему</h2>
+                    <p class="career-form-subtitle">Введите свои данные для доступа к аккаунту</p>
+                </div>
+
+                <!-- Flash сообщения -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    <div class="flash-messages">
+                      {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                          {{ message }}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+
+                <!-- Форма входа -->
+                <form action="{{ url_for('login_page') }}" method="post">
+                    <!-- Email -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Электронная почта</label>
+                        <input type="email" name="login_email" class="career-form-control" required
+                               placeholder="example@email.com" value="{{ request.form.login_email if request.form }}">
+                    </div>
+
+                    <!-- Пароль -->
+                    <div class="career-form-group">
+                        <label class="career-form-label">Пароль</label>
+                        <input type="password" name="login_password" class="career-form-control" required
+                               placeholder="Введите ваш пароль">
+                    </div>
+
+                    <!-- Забыли пароль -->
+                    <div class="career-forgot-password">
+                        <a href="#">Забыли пароль?</a>  <!-- Можно позже добавить маршрут -->
+                    </div>
+
+                    <!-- Кнопка входа -->
+                    <div class="career-form-group">
+                        <button type="submit" class="career-btn-primary">Войти</button>
+                    </div>
+
+                    <!-- Разделитель -->
+                    <div class="career-form-divider"></div>
+
+                    <!-- Футер формы -->
+                    <div class="career-form-footer">
+                        <p>Нет аккаунта?</p>
+                        <a href="{{ url_for('register_page') }}" class="career-btn-outline">Зарегистрироваться</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
